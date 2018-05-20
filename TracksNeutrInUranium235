@@ -1,0 +1,57 @@
+                                           ! realized by bilal el fallah
+program Tracks_neutron_Uranuim
+implicit none
+real::      diff
+integer::   i,n
+real::    Eint,sigmat,sigmad,sigmaa,phi,teta,r,L,x0,y0,z0,gsigmat,cm,moy,somL,u,A
+n=100 ; moy=0. ; u=0.
+do i=1,n
+Eint=2.E6 ; diff=0. ; somL=0. ; x0=0;y0=0;z0=0
+do
+call g(Eint,sigmat,sigmad,sigmaa)
+gsigmat=(((0.6023*19)/235))*sigmat ! sigmma total macroscopique
+call random_number(R)
+L=-log(R)/gsigmat
+somL=somL+L
+teta=acos(2*R-1)
+phi=2.*4*atan(1.)*R
+x0=x0+L*sin(teta)*cos(phi)            
+y0=y0+L*sin(teta)*sin(phi)
+z0=z0+L*cos(teta)
+     if (r<=(sigmaa/sigmat)) then
+     exit
+         else
+         A=235/1.008665
+         cm=2*R-1      !cm symbolise cos(teta) dans le SCM
+         Eint=(Eint*(1+A*A+2*A*cm))/(1+a)**2
+         diff=diff+1        
+              if(Eint<=1.) then
+                 exit
+              end if
+             endif
+enddo
+u=u+somL
+print*,Eint,diff,L
+moy=moy+diff
+enddo
+print*,moy/i,u/n
+end program Tracks_neutron_Uranuim
+!---------------------------read and interpolated the cross sections of uranuim-235---------------------------
+subroutine g(Eint,sigmat,sigmad,sigmaa)
+implicit none
+real,dimension(41006)::sigmatotal,Tn,sigmadiff,sigmaabso
+real::sigmat,Eint,sigmad,sigmaa
+integer::i
+open(unit=5,file='section_eff_U5.txt')
+do i=1,41006
+     read(5,*)Tn(i),sigmatotal(i),sigmadiff(i),sigmaabso(i)
+enddo
+close(5)
+do i=1,41006
+    if(Eint>=Tn(i) .and. Eint<=Tn(i+1)) then
+       sigmat=((sigmatotal(i)-sigmatotal(i+1))/(Tn(i)-Tn(i+1)))*(Eint-Tn(i))+sigmatotal(i)
+       sigmad=((sigmadiff(i)-sigmadiff(i+1))/(Tn(i)-Tn(i+1)))*(Eint-Tn(i))+sigmadiff(i)    
+        sigmaa=((sigmaabso(i)-sigmaabso(i+1))/(Tn(i)-Tn(i+1)))*(Eint-Tn(i))+sigmaabso(i)
+    endif
+enddo
+end subroutine
